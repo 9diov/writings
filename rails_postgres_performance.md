@@ -2,7 +2,8 @@
 
 The other day I started to notice that our Rails/PostgreSQL web app, [a cloud-based business intelligence app](https://holistics.io) is a bit sluggish. Reaching to our tracking metrics, I found out that the app's average response time is now a whopping ~200ms!
 
-Since some of our UX interaction depends directly on the response time and to [have a smooth user interaction](https://www.nngroup.com/articles/powers-of-10-time-scales-in-ux/), they need to stay under 100ms, ideally under 50ms, I was determined to start a quest on optimizing our app.
+
+In order to [have a smooth user interaction](https://www.nngroup.com/articles/powers-of-10-time-scales-in-ux/), direct user interactions' response time must stay under 100ms and ideally under 50ms. Since some of our user interaction depend directly on the response time of some Ajax calls, I was determined to start a quest on optimization to improve our app's user experience.
 
 ## Where to start?
 
@@ -44,17 +45,17 @@ As a results, the code to get, say, the code to get the ancestors of a report lo
 
     def ancestors(report)
 	  res = []
-      folder = report.parent
+      folder = report.parent # query sent to database
       while folder.present?
         res << folder
-        folder = folder.parent
+        folder = folder.parent # another query sent to database
       end
 	  res
     end
 
 As you can see, at each level of the hierarchy, a query is sent to the database to retrieve the parent folder of the current one. Together with permission checking at each hierarchy with a bunch of similar logic, our app is sending out hundreds of queries just to show the user when she browses through a folder.
 
-I first thought about caching the whole hierarchy in our cache (Redis) to avoid bombarding our database with such queries but the trade off is cache invalidation which is very error-prone and hard to maintain as new permission rule is added to the system.
+I first thought about caching the whole hierarchy in our cache (Redis) to avoid bombarding our database with such queries. However, the trade-off of such strategy is cache invalidation which is very error-prone and hard to maintain as new permission rule is added to the system.
 
 After some more research, I found out that with PostgreSQL, there is a way to query hierarchical/graph-like data with a single query! Behold the *Recursive CTE*!
 
@@ -73,4 +74,8 @@ With recursive CTE, I can now retrieve the whole hierarchy with a query like so:
 	) select path from tree
 	where id = 0
 
-As I replaced the old logic with these queries, our browsing response time reduces from hundreds milliseconds to under 50ms, a huge step forwardt!
+As I replaced the old logic with these queries, our browsing response time reduces from hundreds milliseconds to under 50ms, a huge step forward!
+
+## The infamous n + 1 problem
+
+## Use PostgreSQL's EXPLAIN to optimize any query
