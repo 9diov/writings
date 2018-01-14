@@ -78,4 +78,31 @@ As I replaced the old logic with these queries, our browsing response time reduc
 
 ## The infamous n + 1 problem
 
+The previous problem is an example of the infamous n + 1 problem. The issue occurs as we use Active Record to retrieve a list of n objects (n rows in database). When we need to get the extra information from a relationship, for example, get author of a book from the list of books, an extra query is executed for each of the n books. Thus we need 1 query to get the list, plus n queries to get the authors, which adds up to n + 1 queries. Each query has its own overhead, and when this happens, all the overhead amount to a considerable slowdown of the final web response.
+
+You can easily detect the n + 1 problem by reading the Rails log in development environment for the slow endpoints. If you want a more automatic way to detect the problem, you can use the [Bullet gem](https://github.com/flyerhzm/bullet). This gem detects n + 1 problem and can send out the alerts through JavaScript alert, browser console, Rails log, or even Growl notification!
+
+### Eager loading
+
+Once you have detected the n + 1 problem, now's the time to fix it. The easiest way to fix the issue with Rails is to use eager loading. Instead of getting the list of books like so:
+
+	books = Book.order(:title)
+
+You add the `includes` method, like so:
+
+	books = Book.includes(:author).order(:title)
+
+With eager loading, instead of n + 1 queries being sent out, Rails will execute 2 queries like this:
+	
+	SELECT * FROM books ORDER BY title
+	SELECT * FROM author WHERE book_id IN (<IDs gotten from the first query>)
+
+Now your response time should be much better since you have reduced the number of database queries from n + 1 to only 2!
+
+### Using JOIN
+
+Eager loading works well for simple cases, but when the extra data needed for each object in the list is not straightforward part of a simple relation, you will need to manually generate a SQL query with JOIN. The upside is that you now can retrieve all the required data with a single query!
+
+## Use PostgreSQL indexes to improve query performance
+
 ## Use PostgreSQL's EXPLAIN to optimize any query
