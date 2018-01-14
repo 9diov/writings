@@ -152,7 +152,7 @@ Basically we can now run the following query for search:
 	JOIN ...<omitted>
 	WHERE reports.content like '%search_term%'
 
-As we want to be able to do fuzzy search on the content of the reports, the performance is getting quite slow. And fuzzy search together with support of any language also remove the possibility of using PostgreSQL support for [full text search](https://www.postgresql.org/docs/current/static/textsearch.html).
+As we want to be able to do fuzzy search on the content of the reports, the performance is getting quite slow. Fuzzy search, together with the requirement to support non-English languages also remove the possibility of using PostgreSQL 's [full text search support](https://www.postgresql.org/docs/current/static/textsearch.html).
 
 After digging deeper into PostgreSQL's documentation, I found out that it supports [trigram indexes](https://www.postgresql.org/docs/current/static/pgtrgm.html). Trigram indexes work by breaking text input into chunks of 3 letters. For example, the trigram for the word 'performance' is 'per', 'erf', 'rfo', ..., 'nce'.
 
