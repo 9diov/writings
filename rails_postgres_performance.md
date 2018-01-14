@@ -1,7 +1,8 @@
+# How we reduced our Rails/PostgreSQL app's response time by 3x
+
 ## Background
 
 The other day I started to notice that our Rails/PostgreSQL web app, [a cloud-based business intelligence app](https://holistics.io) is a bit sluggish. Reaching to our tracking metrics, I found out that the app's average response time is now a whopping ~200ms!
-
 
 In order to [have a smooth user interaction](https://www.nngroup.com/articles/powers-of-10-time-scales-in-ux/), direct user interactions' response time must stay under 100ms and ideally under 50ms. Since some of our user interaction depend directly on the response time of some Ajax calls, I was determined to start a quest on optimization to improve our app's user experience.
 
@@ -101,9 +102,9 @@ Now your response time should be much better since you have reduced the number o
 
 ### Using JOIN
 
-Eager loading works well for simple cases, but when the extra data needed for each object in the list is not straightforward part of a simple relation, you will need to manually generate a SQL query with JOIN. It seems complicated but actually pretty easy to do. The upside is that you now can retrieve all the required data with a single query!
+Eager loading works well for simple cases, but when the extra data needed for each object in the list is not straightforward part of a simple relationship, you will need to manually generate a SQL query with JOIN. It seems complicated but actually pretty easy to do. The upside is that you now can retrieve all the required data with a single query!
 
-There are 2 ways you can use to execute a JOIN query with Rails. The first one is to use [method chaining](http://guides.rubyonrails.org/active_record_querying.html#understanding-the-method-chaining). You can specify the exact columns for retrieval with this method. For example:
+There are 2 ways to execute a JOIN query with Rails. The first one is to use [method chaining](http://guides.rubyonrails.org/active_record_querying.html#understanding-the-method-chaining). You can specify the exact columns for retrieval with this method. For example:
 
 	Book.select('books.id, books.pages, authors.name')
 		.joins(:authors)
@@ -132,17 +133,39 @@ You can also make the call reusable by putting it into a class method and chain 
 		.include_author_name
 		.include_comment
 
-The second way to execute a SQL query is to use [http://guides.rubyonrails.org/active_record_querying.html#finding-by-sql](find_by_sql) or [http://guides.rubyonrails.org/active_record_querying.html#select-all](select_all):
+The second way to execute a SQL query is to use [find_by_sql](http://guides.rubyonrails.org/active_record_querying.html#finding-by-sql) or [select_all](http://guides.rubyonrails.org/active_record_querying.html#select-all) and write a direct SQL query. `select_all` is similar to `find_by_sql` but returns array of hashes instead of array of book objects.
 
 	Book.find_by_sql("SELECT books.id, books.page, authors.name FROM books JOIN authors ON authors.book_id = books.id WHERE authors.created_at > now () - interval '1 week'")
 
-`select_all` is similar to `find_by_sql` but returns array of hashes instead of array of book objects.
+This method is not portable and reusable and should be avoided unless the chaining method can't support your query.
 
 By using these JOIN queries, you will be able to reduce the overhead to the bare minimum.
 
-## Speed up search with PostgreSQL's trigram index
+## Speed up search with PostgreSQL's trigram indexes
+
+One of the advantage of the recursive CTE queries that I mentioned before is now we can enable search query directly inside the CTE query, instead of doing a string search from Ruby after getting the data out. This speeds up the process but there is still room for improvement.
+
+Basically we can now run the following query for search:
+
+	SELECT *
+	FROM reports
+	JOIN ...<omitted>
+	WHERE reports.content like '%search_term%'
+
+As we want to be able to do fuzzy search on the content of the reports, the performance is getting quite slow. And fuzzy search together with support of any language also remove the possibility of using PostgreSQL support for [full text search](https://www.postgresql.org/docs/current/static/textsearch.html).
+
+After digging deeper into PostgreSQL's documentation, I found out that it supports [trigram indexes](https://www.postgresql.org/docs/current/static/pgtrgm.html). Trigram indexes work by breaking text input into chunks of 3 letters. For example, the trigram for the word 'performance' is 'per', 'erf', 'rfo', ..., 'nce'.
+
+To create the index, you can run the following (put it into your migration file):
+
+	CREATE INDEX CONCURRENTLY index_reports_on_content_trigram
+	ON reports
+	USING gin (content gin_trgm_ops);
+
+In our case, the indexes help reduce our test search query from ~100ms to <5ms, a 20 times improvement in response time!
+
+## Use PostgreSQL's EXPLAIN to optimize any query
+
 Use PostgreSQL indexes to improve query performance
 
 https://github.com/plentz/lol_dba
-
-## Use PostgreSQL's EXPLAIN to optimize any query
