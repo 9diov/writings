@@ -108,7 +108,7 @@ There are 2 ways to execute a JOIN query with Rails. The first one is to use [me
 
 	Book.select('books.id, books.pages, authors.name')
 		.joins(:authors)
-		.where('authors.created_at = ?', 1.week.ago)
+		.where('authors.created_at > ?', 1.week.ago)
 
 You can also make the call reusable by putting it into a class method and chain them together:
 	
