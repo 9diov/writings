@@ -101,8 +101,48 @@ Now your response time should be much better since you have reduced the number o
 
 ### Using JOIN
 
-Eager loading works well for simple cases, but when the extra data needed for each object in the list is not straightforward part of a simple relation, you will need to manually generate a SQL query with JOIN. The upside is that you now can retrieve all the required data with a single query!
+Eager loading works well for simple cases, but when the extra data needed for each object in the list is not straightforward part of a simple relation, you will need to manually generate a SQL query with JOIN. It seems complicated but actually pretty easy to do. The upside is that you now can retrieve all the required data with a single query!
 
-## Use PostgreSQL indexes to improve query performance
+There are 2 ways you can use to execute a JOIN query with Rails. The first one is to use [method chaining](http://guides.rubyonrails.org/active_record_querying.html#understanding-the-method-chaining). You can specify the exact columns for retrieval with this method. For example:
+
+	Book.select('books.id, books.pages, authors.name')
+		.joins(:authors)
+		.where('authors.created_at = ?', 1.week.ago)
+
+You can also make the call reusable by putting it into a class method and chain them together:
+	
+	class Book
+		def self.chain_select
+			select('books.id, books.pages')
+		end
+
+		def self.include_author_name
+			select('authors.name')
+			.joins(:authors)
+			.where('authors.created_at > ?', 1.week.ago)
+		end
+
+		def self.include_comments
+			select('comments.content')
+			.joins(:comments)
+		end
+	end
+
+	Book.chain_select
+		.include_author_name
+		.include_comment
+
+The second way to execute a SQL query is to use [http://guides.rubyonrails.org/active_record_querying.html#finding-by-sql](find_by_sql) or [http://guides.rubyonrails.org/active_record_querying.html#select-all](select_all):
+
+	Book.find_by_sql("SELECT books.id, books.page, authors.name FROM books JOIN authors ON authors.book_id = books.id WHERE authors.created_at > now () - interval '1 week'")
+
+`select_all` is similar to `find_by_sql` but returns array of hashes instead of array of book objects.
+
+By using these JOIN queries, you will be able to reduce the overhead to the bare minimum.
+
+## Speed up search with PostgreSQL's trigram index
+Use PostgreSQL indexes to improve query performance
+
+https://github.com/plentz/lol_dba
 
 ## Use PostgreSQL's EXPLAIN to optimize any query
