@@ -219,3 +219,7 @@ In our case, setting the following configurations improved our performance by an
 ## Bonus: Use PostgreSQL indexes to improve query performance
 
 https://github.com/plentz/lol_dba
+
+## Reference
+
+* [EXPLAIN operations](http://use-the-index-luke.com/sql/explain-plan/postgresql/operations)
