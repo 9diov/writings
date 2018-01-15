@@ -200,10 +200,21 @@ Here is the list of the terms you may find in the explain output and their meani
 Here are some rules that you can follow to 
 
 * If you see `SequenceScan`, it is likely lacking an index. Try adding a relevant index to see if it changes to `IndexScan`.
-* If you see `BitmapHeapScan`, look at the number of Heap Blocks, shared hit, read hit and written. A high number of read hit means you've got a cache miss.
+* If you see `BitmapHeapScan`, look at the number of Heap Blocks, shared hit, read hit and written. A high number of read hit means you've got a lot of cache miss.
 * If you find the `Sort` or `MergeJoin` is slow, check your PostgreSQL configuration for [work_mem](https://www.postgresql.org/docs/current/static/runtime-config-resource.html).
 
+In our case, the costliest part of our query is on a `BitmapHeapScan` with a huge number of pages that need to be retrieved due to cache miss. Even with proper indexing, the performance improvement is negligible. The issue stumped me for a while until I tried to replicate the issue locally by getting a database dump and restore it on my local machine. For some reason, the query ran much faster and the amount of cache miss is minimal! What exactly happened here?
 
+Diving deep into PostgreSQL internals, in the end I found out the root cause. Due to the way PostgreSQL's [MVCC](https://wiki.postgresql.org/wiki/MVCC) works, deleted or updated rows are not removed but kept on disks. Without frequent VACUUMs, the `HeapScan` needs to scan through all the deleted/updated rows to retrieve the relevant rows. When the query is executed locally, since there was no baggage from deleted/updated rows, it ran much faster.
+
+Going through PostgreSQL documentation, I also found out that the auto-VACUUM configuration is not appropriate for our case. You can read more on proper configuration values [here](https://www.citusdata.com/blog/2016/11/04/autovacuum-not-the-enemy/).
+
+In our case, setting the following configurations improved our performance by an order of magnitude!
+
+	ALTER TABLE <table> SET (autovacuum_vacuum_scale_factor = 0.0);
+	ALTER TABLE <table> SET (autovacuum_vacuum_threshold = 1000);
+	ALTER TABLE <table> SET (autovacuum_analyze_scale_factor = 0.0);
+	ALTER TABLE <table> SET (autovacuum_analyze_threshold = 1000);
 
 ## Bonus: Use PostgreSQL indexes to improve query performance
 
