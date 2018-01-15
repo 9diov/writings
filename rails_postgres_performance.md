@@ -19,7 +19,7 @@ Note that for summary metrics, don't just focus on average response time, but lo
 Once you have your tracking data, focus on:
 
 * Ones with long running time
-* Ones that noticably degrades user experience
+* Ones that noticeably degrades user experience
 * Ones with high throughput (executes a lot of times)
 
 In our case, we detected the main 3 problems after looking at the tracking data:
