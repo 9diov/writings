@@ -197,6 +197,13 @@ Here is the list of the terms you may find in the explain output and their meani
 * BitmapIndexScan: Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan
 * CTEScan:         Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored)
 
+Here are some rules that you can follow to 
+
+* If you see `SequenceScan`, it is likely lacking an index. Try adding a relevant index to see if it changes to `IndexScan`.
+* If you see `BitmapHeapScan`, look at the number of Heap Blocks, shared hit, read hit and written. A high number of read hit means you've got a cache miss.
+* If you find the `Sort` or `MergeJoin` is slow, check your PostgreSQL configuration for [work_mem](https://www.postgresql.org/docs/current/static/runtime-config-resource.html).
+
+
 
 ## Bonus: Use PostgreSQL indexes to improve query performance
 
