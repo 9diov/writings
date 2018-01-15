@@ -28,7 +28,7 @@ In our case, we detected the main 3 problems after looking at the tracking data:
 * Business object list (e.g. list of users in management page, list of reports in analytics page, etc.) takes a long time to render
 * A complex query used in our job scheduling subsystem takes longer time than expected to run
 
-## Slow to navigating folder hierarchy
+## Slow to navigate folder hierarchy
 
 In our BI app, we organize the reports into a familiar hierarchy of folders, similar to a file system or Google Drive. As we provide a pretty sophisticated permission system at each level in the hierarchy, the permission checking logic got quite complex. As more permission rules are added, browsing through the hierarchy gets slower and slower. As we did some profiling through the code, we found that some endpoint used during the browsing process sends out up to 200 database queries and 80% of the request is spent on those queries.
 
@@ -164,8 +164,12 @@ To create the index, you can run the following (put it into your migration file)
 
 In our case, the indexes help reduce our test search query from ~100ms to <5ms, a 20 times improvement in response time!
 
-## Use PostgreSQL's EXPLAIN to optimize any query
+## Optimizing a complex PostgreSQL query
 
-Use PostgreSQL indexes to improve query performance
+In our app we have a pretty complex query as part of our job scheduling system. The query itself is a 40-line long query with multiple [CTEs](https://www.postgresql.org/docs/current/static/queries-with.html). Recently our tracking data has shown that this query is gradually getting slower and slower. As this query directly affects the latency of each of our background job, it is important to ensure that it runs as fast as possible.
+
+The default tool whenever we want to check a query's performance is to use [EXPLAIN query](https://www.postgresql.org/docs/current/static/sql-explain.html).
+
+## Bonus: Use PostgreSQL indexes to improve query performance
 
 https://github.com/plentz/lol_dba
