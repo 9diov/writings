@@ -1,4 +1,4 @@
-# How we reduced our Rails/PostgreSQL app's response time by 3x
+# How we reduced our Rails app's response time by 3x with PostgreSQL
 
 ## Background
 
