@@ -172,7 +172,7 @@ The default tool whenever we want to check a query's performance is to use [EXPL
 
 [Screenshot of explain output]
 
-If you want better-formatted output, there are some great EXPLAIN visualization tools such as [Postgres Explain Visualizer](http://tatiyants.com/pev/) or [Gocmdpev](Commandline visualizer: https://github.com/simon-engledew/gocmdpev).
+If you want better-formatted output, there are some great EXPLAIN visualization tools such as [Postgres Explain Visualizer](http://tatiyants.com/pev/) or [Gocmdpev](https://github.com/simon-engledew/gocmdpev).
 
 Interpreting EXPLAIN output and doing the actual optimization is a huge topic by itself. But there are steps that you can generally follow:
 
@@ -181,21 +181,21 @@ Interpreting EXPLAIN output and doing the actual optimization is a huge topic by
 
 Here is the list of the terms you may find in the explain output and their meaning. Source is from the excellent gocmdpev:
 
-* Append:          "Used in a UNION to merge multiple record sets by appending them together.",
-* Limit:           "Returns a specified number of rows from a record set.",
-* Sort:            "Sorts a record set based on the specified sort key.",
-* NestedLoop:      "Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.",
-* MergeJoin:       "Merges two record sets by first sorting them on a join key.",
-* Hash:            "Generates a hash table from the records in the input recordset. Hash is used by Hash Join.",
-* HashJoin:        "Joins to record sets by hashing one of them (using a Hash Scan).",
-* Aggregate:       "Groups records together based on a GROUP BY or aggregate function (e.g. sum()).",
-* Hashaggregate:   "Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.",
-* SequenceScan:    "Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",
-* IndexScan:       "Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.",
-* IndexOnlyScan:   "Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table.",
-* BitmapHeapScan:  "Searches through the pages returned by the Bitmap Index Scan for relevant rows.",
-* BitmapIndexScan: "Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.",
-* CTEScan:         "Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored).",
+* Append:          Used in a UNION to merge multiple record sets by appending them together
+* Limit:           Returns a specified number of rows from a record set
+* Sort:            Sorts a record set based on the specified sort key
+* NestedLoop:      Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned
+* MergeJoin:       Merges two record sets by first sorting them on a join key
+* Hash:            Generates a hash table from the records in the input recordset. Hash is used by Hash Join
+* HashJoin:        Joins to record sets by hashing one of them (using a Hash Scan)
+* Aggregate:       Groups records together based on a GROUP BY or aggregate function (e.g. sum())
+* Hashaggregate:   Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key
+* SequenceScan:    Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read)
+* IndexScan:       Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table
+* IndexOnlyScan:   Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table
+* BitmapHeapScan:  Searches through the pages returned by the Bitmap Index Scan for relevant rows
+* BitmapIndexScan: Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan
+* CTEScan:         Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored)
 
 
 ## Bonus: Use PostgreSQL indexes to improve query performance
