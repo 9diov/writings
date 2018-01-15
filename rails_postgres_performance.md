@@ -189,7 +189,7 @@ Here is the list of the terms you may find in the explain output and their meani
 * Hash:            Generates a hash table from the records in the input recordset. Hash is used by Hash Join
 * HashJoin:        Joins to record sets by hashing one of them (using a Hash Scan)
 * Aggregate:       Groups records together based on a GROUP BY or aggregate function (e.g. sum())
-* Hashaggregate:   Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key
+* HashAggregate:   Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key
 * SequenceScan:    Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read)
 * IndexScan:       Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table
 * IndexOnlyScan:   Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table
